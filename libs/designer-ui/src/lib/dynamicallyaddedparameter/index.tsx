@@ -115,12 +115,31 @@ export const DynamicallyAddedParameter = (props: DynamicallyAddedParameterProps)
       backgroundSize: 'contain',
     };
 
+    const titleLabel = intl.formatMessage({
+      defaultMessage: 'Title',
+      description: 'Label for Title text field',
+    });
+    const descriptionLabel = intl.formatMessage({
+      defaultMessage: 'Description',
+      description: 'Label for Title text field',
+    });
+
     return (
       <div className="msla-dynamic-added-param-header">
         <div className="msla-dynamic-added-param-icon" style={iconStyle}></div>
         <div className="msla-dynamic-added-param-inputs-container">
-          <TextField className="msla-dynamic-added-param-title" value={props.properties.title} onChange={onTitleChange} />
-          <TextField className="msla-dynamic-added-param-description" value={props.properties.description} onChange={onDescriptionChange} />
+          <TextField
+            label={titleLabel}
+            className="msla-dynamic-added-param-title"
+            value={props.properties.title}
+            onChange={onTitleChange}
+          />
+          <TextField
+            label={descriptionLabel}
+            className="msla-dynamic-added-param-description"
+            value={props.properties.description}
+            onChange={onDescriptionChange}
+          />
         </div>
         <div className="msla-dynamic-add-param-menu-container">{renderMenuButton()}</div>
       </div>
