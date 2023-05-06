@@ -5,6 +5,7 @@ import type { SerializedParameter } from '../../actions/bjsworkflow/serializer';
 import { getConnection, getConnectorWithSwagger } from '../../queries/connections';
 import {
   getDynamicSchemaProperties,
+  getDynamicTreeItems,
   getLegacyDynamicSchema,
   getLegacyDynamicTreeItems,
   getLegacyDynamicValues,
@@ -40,43 +41,44 @@ import type {
   SwaggerParser,
 } from '@microsoft/parsers-logic-apps';
 import {
-  isLegacyDynamicValuesTreeExtension,
-  parseEx,
-  splitEx,
-  removeConnectionPrefix,
-  isLegacyDynamicValuesExtension,
   ExtensionProperties,
-  isDynamicPropertiesExtension,
-  isDynamicListExtension,
-  decodePropertySegment,
-  expandAndEncodePropertySegment,
-  toInputParameter,
   OutputMapKey,
   OutputSource,
   ParameterLocations,
   SchemaProcessor,
   WildIndexSegment,
+  decodePropertySegment,
+  expandAndEncodePropertySegment,
+  isDynamicListExtension,
+  isDynamicPropertiesExtension,
+  isDynamicTreeExtension,
+  isLegacyDynamicValuesExtension,
+  isLegacyDynamicValuesTreeExtension,
+  parseEx,
+  removeConnectionPrefix,
+  splitEx,
+  toInputParameter,
 } from '@microsoft/parsers-logic-apps';
 import type { Connection, Connector, OpenAPIV2, OperationInfo, OperationManifest } from '@microsoft/utils-logic-apps';
 import {
-  first,
-  getObjectPropertyValue,
-  safeSetObjectPropertyValue,
+  AssertionErrorCode,
+  AssertionException,
   UnsupportedException,
   UnsupportedExceptionCode,
   UnsupportedExceptionName,
-  ValidationExceptionName,
-  AssertionErrorCode,
-  AssertionException,
   ValidationErrorCode,
   ValidationException,
+  ValidationExceptionName,
   clone,
+  copy,
   equals,
+  first,
+  getObjectPropertyValue,
   getPropertyValue,
   isNullOrEmpty,
   isObject,
   map,
-  copy,
+  safeSetObjectPropertyValue,
   unmap,
 } from '@microsoft/utils-logic-apps';
 
@@ -291,7 +293,7 @@ export async function getFolderItems(
   connectionReference: ConnectionReference | undefined,
   idReplacements: Record<string, string>
 ): Promise<TreeDynamicValue[]> {
-  const { definition, filePickerInfo } = dependencyInfo;
+  const { definition, filePickerInfo, parameter } = dependencyInfo;
   if (isLegacyDynamicValuesTreeExtension(definition) && filePickerInfo) {
     const { open, browse } = filePickerInfo;
     const { connectorId } = operationInfo;
@@ -320,6 +322,24 @@ export async function getFolderItems(
     );
 
     return getLegacyDynamicTreeItems(connectionId, connectorId, operationId, inputs, filePickerInfo, managedIdentityRequestProperties);
+  } else if (isDynamicTreeExtension(definition) && filePickerInfo) {
+    const { open, browse } = filePickerInfo;
+    const { connectorId } = operationInfo;
+    const connectionId = connectionReference?.connection.id as string;
+    const { operationId, parameters: referenceParameters } = selectedValue ? browse : open;
+    const pickerParameters = Object.keys(referenceParameters ?? {}).reduce((result: Record<string, any>, paramKey: string) => {
+      return { ...result, [paramKey]: referenceParameters?.[paramKey] };
+    }, {});
+    const parameters = { ...pickerParameters };
+
+    const operationParameters = getParameterValuesForDynamicInvoke(parameters, nodeInputs, idReplacements);
+
+    let dynamicState = { ...definition.extension.dynamicState };
+    if (selectedValue) {
+      dynamicState = { ...dynamicState, selectionState: { id: selectedValue.id } };
+    }
+
+    return getDynamicTreeItems(connectionId, connectorId, operationId, parameter?.alias, operationParameters, dynamicState);
   }
 
   throw new UnsupportedException(`Dynamic extension '${definition.type}' is not implemented yet or not supported`);

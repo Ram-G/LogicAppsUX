@@ -1,4 +1,4 @@
-import type { IConnectorService, ListDynamicValue, ManagedIdentityRequestProperties } from '../connector';
+import type { IConnectorService, ListDynamicValue, ManagedIdentityRequestProperties, TreeDynamicValue } from '../connector';
 import { getClientRequestIdFromHeaders, pathCombine } from '../helpers';
 import type { IHttpClient } from '../httpClient';
 import { getIntl } from '@microsoft/intl-logic-apps';
@@ -50,6 +50,16 @@ export abstract class BaseConnectorService implements IConnectorService {
     } else if (!valuesClient) {
       throw new ArgumentException('valuesClient required');
     }
+  }
+  getTreeDynamicValues(
+    _connectionId: string,
+    _connectorId: string,
+    _operationId: string,
+    _parameterAlias: string,
+    _parameters: Record<string, any>,
+    _dynamicState: any
+  ): Promise<TreeDynamicValue[]> {
+    throw new Error('Method not implemented.');
   }
 
   async getLegacyDynamicContent(
