@@ -169,27 +169,29 @@ export const TokenPickerOptions = ({
               </button>
             )}
           </div>
-          <div className="msla-token-picker-section-options">
+          <ul className="msla-token-picker-section-options" aria-label={section.label}>
             {(!searchQuery ? section.tokens : filteredTokens).map((token, j) => {
               if (!token.isAdvanced || !moreOptions || searchQuery) {
                 return (
-                  <button
-                    className="msla-token-picker-section-option"
-                    key={`token-picker-option-${j}`}
-                    onClick={() => handleTokenClicked(token)}
-                  >
-                    <div className="msla-token-picker-section-option-text">
-                      <div className="msla-token-picker-option-inner">
-                        <div className="msla-token-picker-option-title">{token.title}</div>
-                        <div className="msla-token-picker-option-description">{token.description}</div>
+                  <li key={`token-picker-li-option-${j}`}>
+                    <button
+                      className="msla-token-picker-section-option"
+                      key={`token-picker-option-${j}`}
+                      onClick={() => handleTokenClicked(token)}
+                    >
+                      <div className="msla-token-picker-section-option-text">
+                        <div className="msla-token-picker-option-inner">
+                          <div className="msla-token-picker-option-title">{token.title}</div>
+                          <div className="msla-token-picker-option-description">{token.description}</div>
+                        </div>
                       </div>
-                    </div>
-                  </button>
+                    </button>
+                  </li>
                 );
               }
               return null;
             })}
-          </div>
+          </ul>
         </>
       ) : null}
     </>
